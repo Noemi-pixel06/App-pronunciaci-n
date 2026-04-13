@@ -2,39 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>🌸Pronunciación💖</title>
+    <title>🌸 Pronunciación💖</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-<div class="container">
-    <h1>✨Practica tu pronunciación✨</h1>
 
+<body>
+
+<div class="container">
+
+    <h1>✨ Practica tu pronunciación ✨</h1>
+
+    <!-- 👤 NOMBRE -->
+    <input type="text" id="nombre" placeholder="Tu nombre">
+
+    <!-- 🎚️ NIVELES -->
     <div class="nivel">
         <button onclick="seleccionarNivel('facil')">Fácil</button>
         <button onclick="seleccionarNivel('medio')">Medio</button>
         <button onclick="seleccionarNivel('dificil')">Difícil</button>
     </div>
 
+    <!-- 💬 FRASE -->
     <div class="frase" id="frase">💬 Elige un nivel para comenzar</div>
 
+    <!-- 🎤 BOTÓN -->
     <button onclick="grabarYEvaluar()" id="btnHablar">🎤 Hablar</button>
 
+    <!-- 📊 RESULTADO -->
     <div id="resultado" class="resultado">Aquí verás tu resultado</div>
 
+    <!-- 🏆 PODIO -->
     <h3>🏆 Podio de la pronunciación</h3>
     <div id="podio">Aún no hay resultados</div>
 
+    <!-- 🔊 AUDIOS -->
     <audio id="audio-success" src="{{ url_for('static', filename='success.mp3') }}"></audio>
     <audio id="audio-error" src="{{ url_for('static', filename='error.mp3') }}"></audio>
+
 </div>
 
 <script>
+
 let nivelSeleccionado = '';
 let fraseActual = '';
 
 function seleccionarNivel(nivel) {
     nivelSeleccionado = nivel;
+
     fetch('/frase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -49,37 +66,39 @@ function seleccionarNivel(nivel) {
 }
 
 async function grabarYEvaluar() {
+
+    const nombre = document.getElementById("nombre").value || "Anónimo";
+
     if (!nivelSeleccionado) {
         alert("Elige primero un nivel 😊");
         return;
     }
 
-    const resultadoDiv = document.getElementById('resultado');
-    const audioSuccess = document.getElementById('audio-success');
-    const audioError = document.getElementById('audio-error');
-
-    resultadoDiv.textContent = "🎤 Escuchando...";
-
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
     if (!SpeechRecognition) {
-        resultadoDiv.textContent = "❌ Tu navegador no soporta reconocimiento de voz.";
+        alert("Tu navegador no soporta voz");
         return;
     }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'es-ES';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+
+    document.getElementById('resultado').innerText = "🎤 Escuchando...";
 
     recognition.start();
 
     recognition.onresult = async (event) => {
+
         const dicho = event.results[0][0].transcript.toLowerCase();
 
         const response = await fetch('/evaluar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `frase=${encodeURIComponent(fraseActual)}&dicho=${encodeURIComponent(dicho)}`
+            body:
+                `frase=${encodeURIComponent(fraseActual)}` +
+                `&dicho=${encodeURIComponent(dicho)}` +
+                `&nombre=${encodeURIComponent(nombre)}`
         });
 
         const data = await response.json();
@@ -88,28 +107,32 @@ async function grabarYEvaluar() {
 
         if (data.porcentaje > 85) {
             mensaje += "🌟 ¡Excelente!";
-            audioSuccess.play();
+            document.getElementById('audio-success').play();
         } else if (data.porcentaje > 60) {
             mensaje += "👍 Bien, pero mejora";
         } else {
             mensaje += "🔁 Intenta otra vez";
-            audioError.play();
+            document.getElementById('audio-error').play();
         }
 
-        resultadoDiv.textContent = mensaje;
+        document.getElementById('resultado').innerText = mensaje;
 
-        // Mostrar podio
-        let podioHTML = '';
+        // 🏆 PODIO
+        let podioHTML = "<h4>Top 3</h4>";
+
         data.top3.forEach((p, i) => {
-            podioHTML += `${i+1}. ${p}%\n`;
+            podioHTML += `${i+1}. ${p[0]} - ${p[1]}%<br>`;
         });
-        document.getElementById('podio').textContent = podioHTML;
+
+        document.getElementById('podio').innerHTML = podioHTML;
     };
 
     recognition.onerror = () => {
-        resultadoDiv.textContent = "❌ No se pudo entender, intenta de nuevo.";
+        document.getElementById('resultado').innerText = "❌ Error de voz";
     };
 }
+
 </script>
+
 </body>
 </html>
