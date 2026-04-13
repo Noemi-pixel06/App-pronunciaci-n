@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>🌸Pronunciación💖</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div class="container">
+    <h1>✨Practica tu pronunciación✨</h1>
+
+    <div class="nivel">
+        <button onclick="seleccionarNivel('facil')">Fácil</button>
+        <button onclick="seleccionarNivel('medio')">Medio</button>
+        <button onclick="seleccionarNivel('dificil')">Difícil</button>
+    </div>
+
+    <div class="frase" id="frase">💬 Elige un nivel para comenzar</div>
+
+    <button onclick="grabarYEvaluar()" id="btnHablar">🎤 Hablar</button>
+
+    <div id="resultado" class="resultado">Aquí verás tu resultado</div>
+
+    <h3>🏆 Podio de la pronunciación</h3>
+    <div id="podio">Aún no hay resultados</div>
+
+    <audio id="audio-success" src="{{ url_for('static', filename='success.mp3') }}"></audio>
+    <audio id="audio-error" src="{{ url_for('static', filename='error.mp3') }}"></audio>
+</div>
+
+<script>
+let nivelSeleccionado = '';
+let fraseActual = '';
+
+function seleccionarNivel(nivel) {
+    nivelSeleccionado = nivel;
+    fetch('/frase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `nivel=${nivel}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        fraseActual = data.frase;
+        document.getElementById('frase').innerText = fraseActual;
+        document.getElementById('resultado').innerText = "💬 Ahora habla la frase!";
+    });
+}
+
+async function grabarYEvaluar() {
+    if (!nivelSeleccionado) {
+        alert("Elige primero un nivel 😊");
+        return;
+    }
+
+    const resultadoDiv = document.getElementById('resultado');
+    const audioSuccess = document.getElementById('audio-success');
+    const audioError = document.getElementById('audio-error');
+
+    resultadoDiv.textContent = "🎤 Escuchando...";
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        resultadoDiv.textContent = "❌ Tu navegador no soporta reconocimiento de voz.";
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = async (event) => {
+        const dicho = event.results[0][0].transcript.toLowerCase();
+
+        const response = await fetch('/evaluar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `frase=${encodeURIComponent(fraseActual)}&dicho=${encodeURIComponent(dicho)}`
+        });
+
+        const data = await response.json();
+
+        let mensaje = `🗣️ Dijiste: ${data.dicho}\n📊 Precisión: ${data.porcentaje}%\n`;
+
+        if (data.porcentaje > 85) {
+            mensaje += "🌟 ¡Excelente!";
+            audioSuccess.play();
+        } else if (data.porcentaje > 60) {
+            mensaje += "👍 Bien, pero mejora";
+        } else {
+            mensaje += "🔁 Intenta otra vez";
+            audioError.play();
+        }
+
+        resultadoDiv.textContent = mensaje;
+
+        // Mostrar podio
+        let podioHTML = '';
+        data.top3.forEach((p, i) => {
+            podioHTML += `${i+1}. ${p}%\n`;
+        });
+        document.getElementById('podio').textContent = podioHTML;
+    };
+
+    recognition.onerror = () => {
+        resultadoDiv.textContent = "❌ No se pudo entender, intenta de nuevo.";
+    };
+}
+</script>
+</body>
+</html>
