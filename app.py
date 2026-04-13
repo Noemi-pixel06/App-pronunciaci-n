@@ -8,7 +8,7 @@ app = Flask(__name__)
 # ------------------ FRASES ------------------
 
 frases = {
-    "facil": ["Hola", "Buenos días", "Buenas tardes", "el gato", "hola como estas", "buenas noches"],
+    "facil": ["hola", "Buenos días", "Buenas tardes", "el gato", "hola como estas", "buenas noches"],
     "medio": ["quiero aprender español", "mañana iremos al parque", "el cielo es muy azul"],
     "dificil": ["los libros son mis amigos", "tengo un perro muy jugueton", "la vida es bella y divertida"]
 }
