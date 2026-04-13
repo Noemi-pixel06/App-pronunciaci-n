@@ -1,0 +1,92 @@
+body {
+    background-color: #ffc0cb;
+    font-family: "Comic Sans MS", cursive;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    background: #fff0f5;
+    margin: 50px auto;
+    padding: 20px;
+    width: 400px;
+    border-radius: 20px;
+    box-shadow: 0 0 15px pink;
+}
+
+h1 {
+    color: #ff1493;
+}
+
+.nivel button {
+    background: #ff69b4;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 10px;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.nivel button:hover {
+    background: #ff1493;
+}
+
+.frase {
+    background: #ffe4e1;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    color: #c71585;
+    font-size: 18px;
+    user-select: none;
+}
+
+button#btnHablar {
+    background: #ff69b4;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button#btnHablar:hover {
+    background: #ff1493;
+}
+
+.resultado {
+    margin-top: 20px;
+    white-space: pre-line;
+    color: #8b008b;
+    font-size: 16px;
+    min-height: 60px;
+    user-select: none;
+}
+
+#podio {
+    white-space: pre-line;
+    color: #c71585;
+    font-weight: bold;
+}
+
+/* Responsive para celular */
+@media only screen and (max-width: 600px) {
+  .container {
+      width: 90%;
+      margin: 20px auto;
+      padding: 10px;
+  }
+
+  button, .nivel button {
+      padding: 15px;
+      font-size: 18px;
+  }
+
+  .frase {
+      font-size: 20px;
+  }
+}
